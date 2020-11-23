@@ -25,15 +25,15 @@ FWG_MapCoords = {
 };
 
 FelwoodGather_ClassColor={
-	[FWG_HUNTER] = { r = 0.67, g = 0.83, b = 0.45 },
-	[FWG_WARLOCK] = { r = 0.58, g = 0.51, b = 0.79 },
-	[FWG_PRIEST] = { r = 1.0, g = 1.0, b = 1.0 },
-	[FWG_PALADIN] = { r = 0.96, g = 0.55, b = 0.73 },
-	[FWG_MAGE] = { r = 0.41, g = 0.8, b = 0.94 },
-	[FWG_ROGUE] = { r = 1.0, g = 0.96, b = 0.41 },
-	[FWG_DRUID] = { r = 1.0, g = 0.49, b = 0.04 },
-	[FWG_SHAMAN] = { r = 0.96, g = 0.55, b = 0.73 },
-	[FWG_WARRIOR] = { r = 0.78, g = 0.61, b = 0.43 }
+	[FWG_HUNTER:upper()] = { r = 0.67, g = 0.83, b = 0.45 },
+	[FWG_WARLOCK:upper()] = { r = 0.58, g = 0.51, b = 0.79 },
+	[FWG_PRIEST:upper()] = { r = 1.0, g = 1.0, b = 1.0 },
+	[FWG_PALADIN:upper()] = { r = 0.96, g = 0.55, b = 0.73 },
+	[FWG_MAGE:upper()] = { r = 0.41, g = 0.8, b = 0.94 },
+	[FWG_ROGUE:upper()] = { r = 1.0, g = 0.96, b = 0.41 },
+	[FWG_DRUID:upper()] = { r = 1.0, g = 0.49, b = 0.04 },
+	[FWG_SHAMAN:upper()] = { r = 0.96, g = 0.55, b = 0.73 },
+	[FWG_WARRIOR:upper()] = { r = 0.78, g = 0.61, b = 0.43 }
 };
 
 
@@ -160,20 +160,17 @@ function FelwoodGatherMap_Draw()
 	end
 
 	if (FelwoodGather_GetNumRaidMembers() > 0) then
---		for i=1, MAX_PARTY_MEMBERS do
---			partyMemberFrame = getglobal("FWG_Party"..i);
---			partyMemberFrame:Hide();
---		end
 		for i=1, MAX_RAID_MEMBERS do
 			local unit = "raid"..i;
-			partyX, partyY = GetPlayerMapPosition(unit);
+			partyX, partyY = FelwoodGather_GetPlayerMapPosition(unit);
 			partyMemberFrame = getglobal("FWG_Raid"..i);
 			if ( (partyX ~= 0 or partyY ~= 0) and not UnitIsUnit(unit, "player") ) then
 				-- raid rosters that is not in same group			
 				partyX, partyY = FelwoodGatherMap_CalcMapCoords(partyX, partyY);
  				if (FelwoodGatherMap_OnMap(partyX, partyY)) then 
 	 				partyMemberFrame:SetPoint("CENTER", "FWG_WrapperFrame", "TOPLEFT", partyX, -partyY);
-	 				color = FelwoodGather_ClassColor[UnitClass(unit)];
+					local _,class = UnitClass(unit);
+	 				color = FelwoodGather_ClassColor[class];
 	 				getglobal("FWG_Raid"..i.."Icon"):SetVertexColor(color.r, color.g, color.b);
 					partyMemberFrame:Show();
 				else
@@ -191,18 +188,19 @@ function FelwoodGatherMap_Draw()
 	end
 	if (FelwoodGather_GetNumPartyMembers() > 0) then
 		for i=1, MAX_PARTY_MEMBERS do
-			partyX, partyY = GetPlayerMapPosition("party"..i);
+			local unit = 'party' .. i;
+			partyX, partyY = FelwoodGather_GetPlayerMapPosition(unit);
 			partyMemberFrame = getglobal("FWG_Party"..i);
 			if ( partyX == 0 and partyY == 0 ) then
 				partyMemberFrame:Hide();
 			else
 				partyX, partyY = FelwoodGatherMap_CalcMapCoords(partyX, partyY);
-				FelwoodGather_DebugPrint("party"..i.." "..partyX.." "..partyY);
+				FelwoodGather_DebugPrint(unit.." "..partyX.." "..partyY);
 				if ( FelwoodGatherMap_OnMap(partyX, partyY)) then
-					FelwoodGather_DebugPrint("party"..i.." drawing");
+					FelwoodGather_DebugPrint(unit.." drawing");
 					partyMemberFrame:SetPoint("CENTER", "FWG_WrapperFrame", "TOPLEFT", partyX, -partyY);
-	 				color = FelwoodGather_ClassColor[UnitClass("party"..i)];
---	 				color = RAID_CLASS_COLORS[string.upper(UnitClass("party"..i))];
+					local _,class = UnitClass(unit);
+	 				color = FelwoodGather_ClassColor[class];
 	 				getglobal("FWG_Party"..i.."Icon"):SetVertexColor(color.r, color.g, color.b);
 					partyMemberFrame:Show();
 				else 

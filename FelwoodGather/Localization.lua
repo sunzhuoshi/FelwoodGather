@@ -201,16 +201,6 @@ FELWOODGATHER_PICKUP="Prendre maintenant";
 BINDING_HEADER_FELWOODGATHER=FELWOODGATHER_FELWOODGATHER;
 BINDING_NAME_FELWOODGATHER_TOGGLE_CONFIG_WINDOW="Toggle Config Window";
 BINDING_NAME_FELWOODGATHER_COUNTDOWN="Countdown Call";
---class text
-FWG_WARRIOR="Guerrier"; 
-FWG_ROGUE="Voleur"; 
-FWG_HUNTER="Chasseur"; 
-FWG_MAGE="Mage"; 
-FWG_WARLOCK="D\195\169moniste"; 
-FWG_DRUID="Druide"; 
-FWG_PRIEST="Pr\195\170tre"; 
-FWG_SHAMAN="Chaman"; 
-FWG_PALADIN="Paladin";
 FELWOODGATHER_ONLY_IN_FELWOOD="FelwoodGather minimap ne s\'affichera que dans Felwood";
 end
 if ( GetLocale() == "deDE" ) then
@@ -304,16 +294,6 @@ BINDING_HEADER_FELWOODGATHER=FELWOODGATHER_FELWOODGATHER;
 BINDING_NAME_FELWOODGATHER_TOGGLE_CONFIG_WINDOW="\195\182ffnen/schlie\195\159en des Konfigurationsmen\195\188s";
 BINDING_NAME_FELWOODGATHER_COUNTDOWN="Countdown Z\195\164hler";
 FELWOODGATHER_ONLY_IN_FELWOOD="FelwoodGather-MiniMap ist nur in Felwood nutzbar.";
---class text
-FWG_WARRIOR = "Krieger";
-FWG_ROGUE = "Schurke";
-FWG_HUNTER = "J\195\164ger";
-FWG_MAGE = "Magier";
-FWG_WARLOCK = "Hexenmeister";
-FWG_DRUID = "Druide";
-FWG_PRIEST = "Priester";
-FWG_SHAMAN = "Schamane";
-FWG_PALADIN = "Paladin";
 end
 if ( GetLocale() == 'zhCN' ) then
 FELWOODGATHER_HELPMSG1="此插件只能在费伍德森林中使用。";
@@ -359,11 +339,11 @@ FWG_KALIMDOR_MAPNAME="卡利姆多";
 FWG_LOOTMSG_MATCH_PATTERN="You receive item:(.+)%.";
 
 --notification
-FWG_NOTIFY_MESSAGE="%s will spawn in %02d:%02d - at %s(%d, %d)";
-FWG_BROADCAST_COUNTS="计时信息已广播。";
+FWG_NOTIFY_MESSAGE="%s 将于 %02d:%02d 后在 %s(%d, %d) 刷新";
+FWG_BROADCAST_COUNTS="条计时信息已广播。";
 FWG_NOT_HAVE_TIMER="你没有任何计时信息。";
 --tooltip
-FWG_TOOLTIP_TEXT="%s - %s\nETA: %s\n首次遇见: %s";
+FWG_TOOLTIP_TEXT="%s - %s\n估计刷新: %s\n首次遇见: %s";
 FWG_TOOLTIP_TEXT_EXT="\n获取次数: %d";
 FWG_NO_TIMER="";
 FWG_FIRSTSEEN_FORMAT="%02d:%02d:%02d ago";
@@ -395,16 +375,6 @@ FELWOODGATHER_PICKUP="快点！现在";
 BINDING_HEADER_FELWOODGATHER=FELWOODGATHER_FELWOODGATHER;
 BINDING_NAME_FELWOODGATHER_TOGGLE_CONFIG_WINDOW="开关配置窗口";
 BINDING_NAME_FELWOODGATHER_COUNTDOWN="倒数呼叫";
---class text
-FWG_WARRIOR="战士";
-FWG_ROGUE="盗贼";
-FWG_HUNTER="猎人";
-FWG_MAGE="法师";
-FWG_WARLOCK="术士";
-FWG_DRUID="德鲁伊";
-FWG_PRIEST="牧师";
-FWG_SHAMAN="萨满";
-FWG_PALADIN="圣骑士";
 FELWOODGATHER_ONLY_IN_FELWOOD="FelwoodGather 小地图只能在费伍德森林显示。";
 FELWOODGATHER_MINIMAP_TURN_ON="小地图图标 |cffffffff开启|r.";
 FELWOODGATHER_MINIMAP_TURN_OFF="小地图图标 |cffffffff关闭|r.";

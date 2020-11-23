@@ -6,7 +6,7 @@ Author: nor3, 0ldi, sunzhuoshi
 
 -- constant definition
 
-FELWOODGATHER_VERSION="0.99";
+FELWOODGATHER_VERSION="0.9.9";
 
 FELWOODGATHER_TIMER = 1500;
 FELWOODGATHER_TIMER_WARN1 = 300;
@@ -334,9 +334,12 @@ function FelwoodGather_GetPlayerMapPosition(unit)
 		unit = 'player';
 	end 
 	local MapID = C_Map.GetBestMapForUnit(unit);
-	local x, y;
+	local x, y = 0, 0;
 	if MapID then
-		x, y = C_Map.GetPlayerMapPosition(MapID, unit):GetXY()
+		local position = C_Map.GetPlayerMapPosition(MapID, unit);
+		if (position) then 
+			x, y = position:GetXY();
+		end 
 	end
 	return x, y;
 end
@@ -347,7 +350,12 @@ function FelwoodGather_GetCorpseMapPosition()
 end 
 
 function FelwoodGather_GetNumRaidMembers()
-	return GetNumGroupMembers(LE_PARTY_CATEGORY_HOME);
+	local number = 0;
+	local InRaid = UnitInRaid('player');
+	if (InRaid) then
+		number = GetNumGroupMembers(LE_PARTY_CATEGORY_HOME);
+	end
+	return number;
 end 
 
 function FelwoodGather_GetNumPartyMembers()
@@ -362,12 +370,6 @@ function FelwoodGather_GetNotificationChannel()
 		channel = "PARTY";
 	end	
 	return channel;
-end
-
-function FelwoodGather_PrintTable(t)
-	for k, v in pairs(t) do
-		print('k: ' .. k .. ', v: ' .. v);
-	end
 end
 
 -- ***************** Handlers **********************
@@ -757,7 +759,7 @@ function FelwoodGather_CheckBuffAndStart()
 		x= x*100;
 		y= y*100;
 		curTime = GetTime();
-		for n, Objs in FelwoodGather_WorldObjs do 
+		for n, Objs in pairs(FelwoodGather_WorldObjs) do 
 			if( (Objs.x - x)*(Objs.x - x)+(Objs.y - y)*(Objs.y - y) < 2) then
 				if ( Objs.timer < curTime - 10) then
 					-- avoid dup
@@ -778,7 +780,7 @@ function FelwoodGather_CheckBuffAndStart()
 						eta = FELWOODGATHER_TIMER;
 						d, h, m, s = ChatFrame_TimeBreakDown(eta);
 						message = string.format(FELWOODGATHER_SHARE_TIMER_FORMAT, FWG_BROADCAST_HEADER, n, m, s, Objs.item, Objs.location, Objs.x, Objs.y);
-						SendAddonMessage("FWG", message, channel);
+						C_ChatInfo.SendAddonMessage("FWG", message, channel);
 					end
 				end
 				
@@ -826,7 +828,7 @@ function FelwoodGather_CheckAndStart(arg1)
 						eta = FELWOODGATHER_TIMER;
 						d, h, m, s = ChatFrame_TimeBreakDown(eta);
 						message = string.format(FELWOODGATHER_SHARE_TIMER_FORMAT, FWG_BROADCAST_HEADER, n, m, s, Objs.item, Objs.location, Objs.x, Objs.y);
-						SendAddonMessage("FWG", message, channel);
+						C_ChatInfo.SendAddonMessage("FWG", message, channel);
 					end
 				end
 			else 
@@ -931,13 +933,13 @@ function FelwoodGather_ShareTimer()
 	local curTime = GetTime();
 	local message;
 	local count = 0;
-	for n, Objs in FelwoodGather_WorldObjs do 
+	for n, Objs in pairs(FelwoodGather_WorldObjs) do 
 		if ((Objs.timer ~= 0) and (Objs.timer + FELWOODGATHER_TIMER > curTime)) then
 			eta = Objs.timer + FELWOODGATHER_TIMER - curTime;
 			d, h, m, s = ChatFrame_TimeBreakDown(eta);
 			
 			message = string.format(FELWOODGATHER_SHARE_TIMER_FORMAT, FWG_BROADCAST_HEADER, n, m, s, Objs.item, Objs.location, Objs.x, Objs.y);
-			SendChatMessage(message, channel);
+			C_ChatInfo.SendAddonMessage('FWG', message, channel);
 			count = count + 1;
 		end
 	end
