@@ -1,10 +1,12 @@
 --[[
 FelwoodGather map functions
 Timer manager for felwood fruit gathering.
-Author: nor3
+Author: nor3, 0ldi, sunzhuoshi
 ]]--
 
 FELWOODGATHER_MAP_INTERVAL = 0.5;
+FelwoodGather_WrapperFrameWidth = 0;
+FelwoodGather_WrapperFrameHeight = 0;
 
 FelwoodGatherMap_Config={
 	alpha = 0.5,
@@ -16,10 +18,10 @@ FelwoodGatherMap_Config={
 };
 
 FWG_MapCoords = {
-	offset_x = 0.319336,
-	offset_y = 0.046875,
-	width=0.25,
-	height=0.75911458
+	offset_x = 0.325697, -- 327 / 1004
+	offset_y = 0.053892, -- 36 / 668
+	width  = 0.330677, -- 332 / 1004
+	height = 0.947605 -- 632 / 668
 };
 
 FelwoodGather_ClassColor={
@@ -41,7 +43,7 @@ function FelwoodGatherMap_SetToolTipText(tooltip)
 	local newLineString = "";
 	local tooltipText = "";
 	-- Check object
-	for n, Objs in FelwoodGather_WorldObjs do 
+	for n, Objs in pairs(FelwoodGather_WorldObjs) do 
 		mapPOI = getglobal("FWG_FramePOI"..n);
 		if ( mapPOI:IsVisible() and MouseIsOver(mapPOI) ) then
 			tooltipText = tooltipText..newLineString..mapPOI.toolTip;
@@ -55,7 +57,7 @@ function FelwoodGatherMap_SetToolTipText(tooltip)
 		newLineString = "\n";
 	end
 	-- Check party
-	if (GetNumRaidMembers() == 0 ) then
+	if (FelwoodGather_GetNumRaidMembers() == 0 ) then
 		for i=1, MAX_PARTY_MEMBERS do
 			unitButton = getglobal("FWG_Party"..i);
 			if ( unitButton:IsVisible() and MouseIsOver(unitButton) ) then
@@ -89,45 +91,44 @@ function FelwoodGatherMap_SetupToolTip(id)
 	FelwoodGatherMap_SetToolTipText(tooltip);
 end
 
-function FelwoodGatherMap_SetupPCToolTip(this)
+function FelwoodGatherMap_SetupPCToolTip(self)
 	tooltip = getglobal("FWG_Tooltip");
-	local x, y = this:GetCenter();
-	local parentX, parentY = this:GetParent():GetCenter();
+	local x, y = self:GetCenter();
+	local parentX, parentY = self:GetParent():GetCenter();
 	if ( x > parentX ) then
-		tooltip:SetOwner(this, "ANCHOR_LEFT");
+		tooltip:SetOwner(self, "ANCHOR_LEFT");
 	else
-		tooltip:SetOwner(this, "ANCHOR_RIGHT");
+		tooltip:SetOwner(self, "ANCHOR_RIGHT");
 	end
 	FelwoodGatherMap_SetToolTipText(tooltip);
 end
 
 
-function FelwoodGatherMap_OnLoad()
-	this:RegisterEvent("ADDON_LOADED");
-	this:RegisterEvent("VARIABLES_LOADED");
-	this:RegisterEvent("ZONE_CHANGED_NEW_AREA");
-	this:RegisterEvent("PARTY_MEMBERS_CHANGED");
-	this:RegisterEvent("PLAYER_ENTERING_WORLD");
+function FelwoodGatherMap_OnLoad(self)
+	self:RegisterEvent("ADDON_LOADED");
+	self:RegisterEvent("VARIABLES_LOADED");
+	self:RegisterEvent("ZONE_CHANGED_NEW_AREA");
+	-- self:RegisterEvent("PARTY_MEMBERS_CHANGED");
+	self:RegisterEvent("PLAYER_ENTERING_WORLD");
 	FWG_MapTitle:SetText(FELWOODGATHERMAP_TITLE);
 end
 
 function FelwoodGatherMap_OnMap(x, y) 
 	return (
 			(x >= 0) and 
---			(x <= 256) and
 			(x <= 384) and
 			(y >= 0) and
-			(y <= 551));
+			(y <= 653));
 end
 
 function FelwoodGatherMap_CalcMapCoords(x, y)
 	local mx, my;
-	mx = (x-FWG_MapCoords.offset_x) * FelwoodGather_WorldMapDetailFrameWidth -1;
-	my = (y-FWG_MapCoords.offset_y) * FelwoodGather_WorldMapDetailFrameHeight - 1;
+	mx = (x - FWG_MapCoords.offset_x) / FWG_MapCoords.width * FelwoodGather_WrapperFrameWidth - 1;
+	my = (y - FWG_MapCoords.offset_y) / FWG_MapCoords.height * FelwoodGather_WrapperFrameHeight - 1;
 	return mx, my;
 end
 
-function FelwoodGatherMap_OnUpdate(elapsed)
+function FelwoodGatherMap_OnUpdate(self, elapsed)
 	if (not FelwoodGatherMap_UpdateTimer) then
 		FelwoodGatherMap_UpdateTimer = 0;
 	else
@@ -149,7 +150,7 @@ function FelwoodGatherMap_CheckParty()
 end
 
 function FelwoodGatherMap_Draw()
-	x, y = GetPlayerMapPosition("player");
+	local x, y = FelwoodGather_GetPlayerMapPosition();
 	x, y = FelwoodGatherMap_CalcMapCoords(x, y);
 	if (FelwoodGatherMap_OnMap(x,y) ) then
 		FWG_Player:SetPoint("CENTER", "FWG_WrapperFrame", "TOPLEFT", x, -y); 
@@ -158,7 +159,7 @@ function FelwoodGatherMap_Draw()
 		FWG_Player:Hide();
 	end
 
-	if (GetNumRaidMembers() > 0) then
+	if (FelwoodGather_GetNumRaidMembers() > 0) then
 --		for i=1, MAX_PARTY_MEMBERS do
 --			partyMemberFrame = getglobal("FWG_Party"..i);
 --			partyMemberFrame:Hide();
@@ -188,7 +189,7 @@ function FelwoodGatherMap_Draw()
 			partyMemberFrame:Hide();
 		end
 	end
-	if (GetNumPartyMembers() > 0) then
+	if (FelwoodGather_GetNumPartyMembers() > 0) then
 		for i=1, MAX_PARTY_MEMBERS do
 			partyX, partyY = GetPlayerMapPosition("party"..i);
 			partyMemberFrame = getglobal("FWG_Party"..i);
@@ -210,17 +211,18 @@ function FelwoodGatherMap_Draw()
 			end
 		end
 	end
-	local corpseX, corpseY = GetCorpseMapPosition();
-	if ( corpseX == 0 and corpseY == 0 ) then
+	local position = FelwoodGather_GetCorpseMapPosition();
+	if (not position) then
 		FWG_Corpse:Hide();
 	else
+		corpseX, corpseY = position:GetXY();
 		corpseX, corpseY = FelwoodGatherMap_CalcMapCoords(corpseX, corpseY);
 		if (FelwoodGatherMap_OnMap(corpseX, corpseY) ) then
 			FWG_Corpse:SetPoint("CENTER", "FWG_WrapperFrame", "TOPLEFT", corpseX, -corpseY);
 			FWG_Corpse:Show();
 		end
 	end
-	for n, Objs in FelwoodGather_WorldObjs do 
+	for n, Objs in pairs(FelwoodGather_WorldObjs) do 
 		-- set texture
 		local mapPOITexture = getglobal("FWG_FramePOI"..n.."Texture");
 		if (mapPOITexture == nil) then 
@@ -238,8 +240,8 @@ function FelwoodGatherMap_Draw()
 		-- draw icon
 		local mapPOI = getglobal("FWG_FramePOI"..n);
 
-		mnX = (Objs.x/100 - FWG_MapCoords.offset_x) * FelwoodGather_WorldMapDetailFrameWidth;
-		mnY = -(Objs.y/100 - FWG_MapCoords.offset_y )* FelwoodGather_WorldMapDetailFrameHeight;
+		mnX = (Objs.x / 100 - FWG_MapCoords.offset_x) / FWG_MapCoords.width * FelwoodGather_WrapperFrameWidth;
+		mnY = -(Objs.y / 100 - FWG_MapCoords.offset_y ) / FWG_MapCoords.height * FelwoodGather_WrapperFrameHeight;
 		mapPOI:SetPoint("CENTER", "FWG_WrapperFrame", "TOPLEFT", mnX, mnY);
 		mapPOI:SetWidth(FelwoodGather_Config.scale);
 		mapPOI:SetHeight(FelwoodGather_Config.scale);
@@ -318,9 +320,11 @@ function FelwoodGatherMap_PingMap(arg1)
 	--TODO
 end
 
-function FelwoodGatherMap_OnEvent()
+function FelwoodGatherMap_OnEvent(self, event)
 	if ( event == "ADDON_LOADED") then
 		if( arg1 == FELWOODGATHER_FELWOODGATHER ) then
+			FelwoodGather_WrapperFrameWidth = FWG_WrapperFrame:GetWidth();
+			FelwoodGather_WrapperFrameHeight = FWG_WrapperFrame:GetHeight();
 		end
 	elseif (event == "VARIABLES_LOADED") then
 
@@ -430,6 +434,7 @@ function FelwoodGatherMap_ResetMapPosition()
 end
 
 function FelwoodGatherMap_ShowFrame()
+	FELWOODGATHER_ACTIVE = true;
 	FelwoodGatherMap_UpdateAlpha();
 	FWG_Frame:Show();
 	FelwoodGatherMap_UpdateScale();
@@ -443,7 +448,6 @@ function FelwoodGatherMap_ToggleMapWindow()
 		local curZone = GetRealZoneText();
 		if( (curZone ~= nil) and curZone == FWG_FELWOOD_MAPNAME) then
 			FelwoodGatherMap_ShowFrame();
-			FELWOODGATHER_ACTIVE = true;
 		else
 			FelwoodGather_Print(FELWOODGATHER_ONLY_IN_FELWOOD);
 		end

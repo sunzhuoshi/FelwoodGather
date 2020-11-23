@@ -25,24 +25,24 @@
 		</Layers>
 		<Scripts>
 			<OnLoad>
-				this:SetFrameLevel(this:GetFrameLevel() + 1);
-				this.toolTip="";
-				if ( this:GetID() == 0 ) then
-					this.unit = "player";
-					getglobal(this:GetName().."Icon"):SetTexture("Interface\\WorldMap\\WorldMapPlayerIcon");
+				self:SetFrameLevel(self:GetFrameLevel() + 1);
+				self.toolTip="";
+				if ( self:GetID() == 0 ) then
+					self.unit = "player";
+					getglobal(self:GetName().."Icon"):SetTexture("Interface\\WorldMap\\WorldMapPlayerIcon");
 				else
-					this.unit = "party"..this:GetID();
---					getglobal(this:GetName().."Icon"):SetTexture("Interface\\WorldMap\\WorldMapPartyIcon");
-					getglobal(this:GetName().."Icon"):SetTexture("Interface\\AddOns\\FelwoodGather\\PartyIcon.tga");
+					self.unit = "party"..self:GetID();
+--					getglobal(self:GetName().."Icon"):SetTexture("Interface\\WorldMap\\WorldMapPartyIcon");
+					getglobal(self:GetName().."Icon"):SetTexture("Interface\\AddOns\\FelwoodGather\\PartyIcon.tga");
 				end
-				this:SetFrameLevel(this:GetFrameLevel() + 1);
-				this:RegisterForClicks("LeftButtonUp");
+				self:SetFrameLevel(self:GetFrameLevel() + 1);
+				self:RegisterForClicks("LeftButtonUp");
 			</OnLoad>
 			<OnEnter>
-				FelwoodGatherMap_SetupPCToolTip(this);
+				FelwoodGatherMap_SetupPCToolTip(self);
 			</OnEnter>
 			<OnLeave>
-				FWG_Tooltip:Hide();
+				FWG_Tooltip:Hide(self);
 			</OnLeave>
 		</Scripts>
 	</Button>
@@ -50,11 +50,11 @@
 	<Frame name="FWG_RaidTemplate" inherits="FWG_PartyTemplate" virtual="true">
 		<Scripts>
 			<OnLoad>
-				this:SetFrameLevel(this:GetFrameLevel() + 1);
-				this.unit = "raid"..this:GetID();
-				this:RegisterForClicks("LeftButtonUp");
---				getglobal(this:GetName().."Icon"):SetTexture("Interface\\WorldMap\\WorldMapPartyIcon");
-				getglobal(this:GetName().."Icon"):SetTexture("Interface\\AddOns\\FelwoodGather\\PartyIcon.tga");
+				self:SetFrameLevel(self:GetFrameLevel() + 1);
+				self.unit = "raid"..self:GetID();
+				self:RegisterForClicks("LeftButtonUp");
+--				getglobal(self:GetName().."Icon"):SetTexture("Interface\\WorldMap\\WorldMapPartyIcon");
+				getglobal(self:GetName().."Icon"):SetTexture("Interface\\AddOns\\FelwoodGather\\PartyIcon.tga");
 			</OnLoad>
 		</Scripts>
 	</Frame>
@@ -75,11 +75,11 @@
 		</Layers>
 		<Scripts>
 			<OnLoad>
-				this:SetFrameLevel(this:GetFrameLevel() + 1);
+				self:SetFrameLevel(self:GetFrameLevel() + 1);
 			</OnLoad>
 			<OnEnter>
-				local x, y = this:GetCenter();
-				local parentX, parentY = this:GetParent():GetCenter();
+				local x, y = self:GetCenter();
+				local parentX, parentY = self:GetParent():GetCenter();
 				if ( x > parentX ) then
 					FWG_Tooltip:SetOwner(this, "ANCHOR_LEFT");
 				else
@@ -100,20 +100,20 @@
 		</Size>
 		<Scripts>
 			<OnLoad>
-				this.toolTip="no time";
-				this:SetFrameLevel(this:GetFrameLevel() + 2);
-				this:RegisterForClicks("LeftButtonUp", "RightButtonUp");
+				self.toolTip="no time";
+				self:SetFrameLevel(self:GetFrameLevel() + 2);
+				self:RegisterForClicks("LeftButtonUp", "RightButtonUp");
 			</OnLoad>
 			<OnEnter>
-				id = this:GetID();
+				id = self:GetID();
 				FelwoodGatherMap_SetupToolTip(id);
 			</OnEnter>
 			<OnLeave>
 				FWG_Tooltip:Hide();
 			</OnLeave>
 			<OnClick>
-				id = this:GetID();
-				FelwoodGather_OnClick(arg1, id, this:GetName());
+				id = self:GetID();
+				FelwoodGather_OnClick(arg1, id, self:GetName());
 			</OnClick>
 		</Scripts>
 		<Anchors>
@@ -145,9 +145,13 @@
 	</Button>
 			
 	<!-- the main frame -->
-	<Frame name="FWG_Frame" hidden="true" movable="true" parent="UIParent">
+	<Frame name="FWG_Frame" hidden="true" movable="true" 
+parent="UIParent" enableMouse="true"
+>
 		<Size>
-			<AbsDimension x="336" y="573"/>
+			<AbsDimension x="336" 
+y="655"
+/>
 		</Size>
 		
 		<Anchors>
@@ -161,7 +165,9 @@
 		<Frames>
 			<Frame name="FWG_BorderFrame">
 				<Size>
-					<AbsDimension x="332" y="551"/>
+					<AbsDimension x="332" 
+y="633"
+/>
 				</Size>
 				
 				<Anchors>
@@ -206,7 +212,9 @@
 			<!-- the map frame -->
 			<Frame name="FWG_WrapperFrame">
 				<Size>
-					<AbsDimension x="332" y="551"/>
+					<AbsDimension x="332" 
+y="633"
+/>
 				</Size>
 				
 				<Anchors>
@@ -246,7 +254,9 @@
 						</Texture>
 						<Texture name="FWG_Bg3" file="Interface\AddOns\FelwoodGather\FelwoodGatherBG3.tga">
 							<Size>
-								<AbsDimension x="256" y="64" />
+								<AbsDimension x="256" 
+y="128" 
+/>
 							</Size>
 							<Anchors>
 								<Anchor point="TOP" relativeTo="FWG_Bg2" relativePoint="BOTTOM">
@@ -282,7 +292,9 @@
 						</Texture>
 						<Texture name="FWG_Bg6" file="Interface\AddOns\FelwoodGather\FelwoodGatherBG6.tga">
 							<Size>
-								<AbsDimension x="128" y="64" />
+								<AbsDimension x="128" 
+y="128" 
+/>
 							</Size>
 							<Anchors>
 								<Anchor point="TOP" relativeTo="FWG_Bg5" relativePoint="BOTTOM">
@@ -297,14 +309,14 @@
 				
 				<Scripts>
 					<OnLoad>
-						this:SetFrameLevel(FWG_BorderFrame:GetFrameLevel() + 1);
-						FelwoodGatherMap_OnLoad();
+						self:SetFrameLevel(FWG_BorderFrame:GetFrameLevel() + 1);
+						FelwoodGatherMap_OnLoad(self);
 					</OnLoad>
 					<OnUpdate>
-						FelwoodGatherMap_OnUpdate(arg1);
+						FelwoodGatherMap_OnUpdate(self, elapsed);
 					</OnUpdate>
 					<OnEvent>
-						FelwoodGatherMap_OnEvent(event)
+						FelwoodGatherMap_OnEvent(self, event)
 					</OnEvent>
 					<OnMouseDown>
 						if(arg1 == "RightButton") then
@@ -317,7 +329,9 @@
 			<!-- the blip frame -->
 			<Frame name="FWG_BlipFrame">
 				<Size>
-					<AbsDimension x="332" y="551"/>
+					<AbsDimension x="332" 
+y="633"
+/>
 				</Size>
 				
 				<Anchors>
@@ -414,20 +428,19 @@
 		
 		<Scripts>
 			<OnMouseDown>
-				if ( arg1 == "LeftButton" and not FelwoodGatherMap_Config.lock) then
-					this:StartMoving();
-				elseif (arg1 == "RightButton") then
-					FelwoodGatherMap_OnContextMenu(arg1);
+				if ( button == "LeftButton" and not FelwoodGatherMap_Config.lock) then
+					self:StartMoving();
+				elseif (button == "RightButton") then
+					FelwoodGatherMap_OnContextMenu(button);
 				end
 			</OnMouseDown>
 			<OnMouseUp>
-				if ( arg1 == "LeftButton" ) then
-					this:StopMovingOrSizing();
+				if ( button == "LeftButton" ) then
+					self:StopMovingOrSizing();
 					FelwoodGatherMap_SavePosition();
 				end
 			</OnMouseUp>
 			<OnShow>
-				--FWG_Print("onshow!");
 				FelwoodGatherMap_UpdateAlpha();
 				FelwoodGatherMap_UpdateScale();
 			</OnShow>
@@ -502,9 +515,9 @@
 				</Anchors>
 				<Scripts>
 					<OnLoad>
-						getglobal(this:GetName().."Text"):SetText(FELWOODGATHER_OPTIONS_TRANSPARENCY);
-						getglobal(this:GetName().."High"):SetText("100%");
-						getglobal(this:GetName().."Low"):SetText("0%");
+						getglobal(self:GetName().."Text"):SetText(FELWOODGATHER_OPTIONS_TRANSPARENCY);
+						getglobal(self:GetName().."High"):SetText("100%");
+						getglobal(self:GetName().."Low"):SetText("0%");
 						FelwoodGatherMap_SliderAlpha:SetMinMaxValues(0.0,1.0);
 						FelwoodGatherMap_SliderAlpha:SetValueStep(0.1);
 					</OnLoad>
@@ -527,9 +540,9 @@
 				</Anchors>
 				<Scripts>
 					<OnLoad>
-						getglobal(this:GetName().."Text"):SetText(FELWOODGATHER_OPTIONS_SCALE);
-						getglobal(this:GetName().."High"):SetText("100%");
-						getglobal(this:GetName().."Low"):SetText("5%");
+						getglobal(self:GetName().."Text"):SetText(FELWOODGATHER_OPTIONS_SCALE);
+						getglobal(self:GetName().."High"):SetText("100%");
+						getglobal(self:GetName().."Low"):SetText("5%");
 						FelwoodGatherMap_SliderScale:SetMinMaxValues(0.05,1.0);
 						FelwoodGatherMap_SliderScale:SetValueStep(0.05);
 					</OnLoad>
@@ -549,7 +562,7 @@
 				</Anchors>
 				<Scripts>
 					<OnLoad>
-						getglobal(this:GetName().."Text"):SetText(FELWOODGATHER_OPTIONS_AUTOSHOW);
+						getglobal(self:GetName().."Text"):SetText(FELWOODGATHER_OPTIONS_AUTOSHOW);
 					</OnLoad>
 					<OnClick>
 						FelwoodGatherMap_Config.autoshow = (not FelwoodGatherMap_Config.autoshow);
@@ -566,7 +579,7 @@
 				</Anchors>
 				<Scripts>
 					<OnLoad>
-						this:SetText(FELWOODGATHER_OPTIONS_DONE);
+						self:SetText(FELWOODGATHER_OPTIONS_DONE);
 					</OnLoad>
 					<OnClick>
 						FelwoodGatherMap_ToggleMapConfigWindow();
@@ -586,8 +599,8 @@
 	<GameTooltip name="FWG_Tooltip" frameStrata="TOOLTIP" hidden="true" parent="FWG_Frame" inherits="GameTooltipTemplate">
 		<Scripts>
 			<OnLoad>
-				this:SetBackdropBorderColor(TOOLTIP_DEFAULT_COLOR.r, TOOLTIP_DEFAULT_COLOR.g, TOOLTIP_DEFAULT_COLOR.b);
-				this:SetBackdropColor(TOOLTIP_DEFAULT_BACKGROUND_COLOR.r, TOOLTIP_DEFAULT_BACKGROUND_COLOR.g, TOOLTIP_DEFAULT_BACKGROUND_COLOR.b);
+				self:SetBackdropBorderColor(TOOLTIP_DEFAULT_COLOR.r, TOOLTIP_DEFAULT_COLOR.g, TOOLTIP_DEFAULT_COLOR.b);
+				self:SetBackdropColor(TOOLTIP_DEFAULT_BACKGROUND_COLOR.r, TOOLTIP_DEFAULT_BACKGROUND_COLOR.g, TOOLTIP_DEFAULT_BACKGROUND_COLOR.b);
 			</OnLoad>
 		</Scripts>
 	</GameTooltip>

@@ -8,18 +8,18 @@
 		</Size>
 		<Scripts>
 			<OnLoad>
-				FelwoodGather_OnLoad();
+				FelwoodGather_OnLoad(self);
 			</OnLoad>
 			<OnEvent>
-				FelwoodGather_OnEvent(event);
+				FelwoodGather_OnEvent(self, event, ...);
 			</OnEvent>
 			<OnUpdate>
-				FelwoodGather_TimeCheck(arg1);
+				FelwoodGather_TimeCheck(self, elapsed);
 			</OnUpdate>
 		</Scripts>
 	</Frame>
 
-	<Frame name="FelwoodMapOverlayFrame" parent="WorldMapDetailFrame" hidden="true" enablemouse="false" movable="false">
+	<Frame name="FelwoodMapOverlayFrame" parent="WorldMapFrame" hidden="true" enablemouse="false" movable="true">
 		<Anchors>
 			<Anchor point="TOPLEFT" relativePoint="TOPLEFT">
 				<AbsDimension x="0" y="0"/>
@@ -27,13 +27,13 @@
 		</Anchors>
 		<Scripts>
 			<OnLoad>
-				this:SetWidth(WorldMapDetailFrame:GetWidth());
-				this:SetHeight(WorldMapDetailFrame:GetHeight());
-				this:SetFrameLevel(WorldMapPlayer:GetFrameLevel() - 1);
+				self:SetWidth(WorldMapFrame:GetWidth());
+				self:SetHeight(WorldMapFrame:GetHeight());
+				self:SetFrameLevel(self:GetParent():GetFrameLevel() + 1);
 			</OnLoad>
 			<OnUpdate>
-				FelwoodGather_TimeCheck(arg1);
-				FelwoodGather_MapUpdate(arg1);
+				FelwoodGather_TimeCheck(self, elapsed);
+				FelwoodGather_MapUpdate(self, elapsed);
 			</OnUpdate>
 		</Scripts>
 		<Frames>
@@ -45,12 +45,9 @@
 				</Anchors>
 				<Scripts>
 					<OnLoad>
-						this:SetWidth(this:GetParent():GetWidth());
-						this:SetHeight(this:GetParent():GetHeight());
-						this:SetFrameLevel(this:GetParent():GetFrameLevel() + 1);
---						this:SetWidth(WorldMapDetailFrame:GetWidth());
---						this:SetHeight(WorldMapDetailFrame:GetHeight());
---						this:SetFrameLevel(WorldMapPlayer:GetFrameLevel() - 1);
+						self:SetWidth(self:GetParent():GetWidth());
+						self:SetHeight(self:GetParent():GetHeight());
+						self:SetFrameLevel(self:GetParent():GetFrameLevel() + 1);
 					</OnLoad>
 				</Scripts>
 			</Frame>
@@ -65,25 +62,25 @@
 		</Anchors>
 		<Scripts>
 			<OnLoad>
-				this.toolTip="no time";
+				self.toolTip="no time";
 			</OnLoad>
 			<OnEnter>
-				local x, y = this:GetCenter();
-				local parentX, parentY = this:GetParent():GetCenter();
+				local x, y = self:GetCenter();
+				local parentX, parentY = self:GetParent():GetCenter();
 				if ( x~=nil and parentX ~= nil and x > parentX ) then
-					FWGMapTooltip:SetOwner(this, "ANCHOR_LEFT");
+					FWGMapTooltip:SetOwner(self, "ANCHOR_LEFT");
 				else
-					FWGMapTooltip:SetOwner(this, "ANCHOR_RIGHT");
+					FWGMapTooltip:SetOwner(self, "ANCHOR_RIGHT");
 				end
-				FWGMapTooltip:SetText(this.toolTip);
+				FWGMapTooltip:SetText(self.toolTip);
 				FWGMapTooltip:Show();
 			</OnEnter>
 			<OnLeave>
 				FWGMapTooltip:Hide();
 			</OnLeave>
 			<OnClick>
-				local id = this:GetID();
-				FelwoodGather_OnClick(arg1, id, this:GetName());
+				local id = self:GetID();
+				FelwoodGather_OnClick(arg1, id, self:GetName());
 			</OnClick>
 		</Scripts>
 		<NormalTexture name="$parentTexture" file="Interface\Icons\INV_Misc_Food_45.blp"/> 
@@ -201,7 +198,7 @@
 				</Anchors>
 				<Scripts>
 					<OnLoad>
-						getglobal(this:GetName().."Text"):SetText(FELWOODGATHER_OPTIONS_ACCEPTTIMER);
+						getglobal(self:GetName().."Text"):SetText(FELWOODGATHER_OPTIONS_ACCEPTTIMER);
 					</OnLoad>
 					<OnClick>
 						FelwoodGather_Config.acceptTimer = (not FelwoodGather_Config.acceptTimer);
@@ -221,7 +218,7 @@
 				</Anchors>
 				<Scripts>
 					<OnLoad>
-						getglobal(this:GetName().."Text"):SetText(FELWOODGATHER_OPTIONS_SENDADDON);
+						getglobal(self:GetName().."Text"):SetText(FELWOODGATHER_OPTIONS_SENDADDON);
 					</OnLoad>
 					<OnClick>
 						FelwoodGather_Config.useMsg = (not FelwoodGather_Config.useMsg);
@@ -239,7 +236,7 @@
 				</Anchors>
 				<Scripts>
 					<OnLoad>
-						getglobal(this:GetName().."Text"):SetText(FELWOODGATHER_OPTIONS_SHOWMINIMAPICONS);
+						getglobal(self:GetName().."Text"):SetText(FELWOODGATHER_OPTIONS_SHOWMINIMAPICONS);
 					</OnLoad>
 					<OnClick>
 						FelwoodGather_ToggleMiniMap();
@@ -260,14 +257,14 @@
 				</Anchors>
 				<Scripts>
 					<OnLoad>
-						getglobal(this:GetName().."Text"):SetText(FELWOODGATHER_OPTIONS_MINIMAPINTERVAL);
-						getglobal(this:GetName().."High"):SetText("2.0");
-						getglobal(this:GetName().."Low"):SetText("0.0");
+						getglobal(self:GetName().."Text"):SetText(FELWOODGATHER_OPTIONS_MINIMAPINTERVAL);
+						getglobal(self:GetName().."High"):SetText("2.0");
+						getglobal(self:GetName().."Low"):SetText("0.0");
 						FelwoodGather_MinimapInterval:SetMinMaxValues(0.0, 2.0);
 						FelwoodGather_MinimapInterval:SetValueStep(0.05);
 					</OnLoad>
 					<OnValueChanged>
-						FelwoodGather_Config.minimapInterval = this:GetValue();
+						FelwoodGather_Config.minimapInterval = self:GetValue();
 						local time = string.format(FELWOODGATHER_OPTIONS_SEC, FelwoodGather_Config.minimapInterval);
 						FelwoodGather_MinimapIntervalLabel:SetText(time);
 
@@ -299,7 +296,7 @@
 				</Anchors>
 				<Scripts>
 					<OnLoad>
-						getglobal(this:GetName().."Text"):SetText(FWG_NOTIFY);
+						getglobal(self:GetName().."Text"):SetText(FWG_NOTIFY);
 					</OnLoad>
 					<OnClick>
 						FelwoodGather_Config.notify = (not FelwoodGather_Config.notify);
@@ -320,9 +317,9 @@
 				</Anchors>
 				<Scripts>
 					<OnLoad>
-						getglobal(this:GetName().."Text"):SetText(FELWOODGATHER_OPTIONS_WARN1);
-						getglobal(this:GetName().."High"):SetText(FELWOODGATHER_OPTIONS_WARN_HIGH);
-						getglobal(this:GetName().."Low"):SetText(FELWOODGATHER_OPTIONS_WARN_LOW);
+						getglobal(self:GetName().."Text"):SetText(FELWOODGATHER_OPTIONS_WARN1);
+						getglobal(self:GetName().."High"):SetText(FELWOODGATHER_OPTIONS_WARN_HIGH);
+						getglobal(self:GetName().."Low"):SetText(FELWOODGATHER_OPTIONS_WARN_LOW);
 						FelwoodGather_SliderWarn1:SetMinMaxValues(0, 1500);
 						FelwoodGather_SliderWarn1:SetValueStep(60);
 					</OnLoad>
@@ -360,9 +357,9 @@
 				</Anchors>
 				<Scripts>
 					<OnLoad>
-						getglobal(this:GetName().."Text"):SetText(FELWOODGATHER_OPTIONS_WARN2);
-						getglobal(this:GetName().."Low"):SetText(FELWOODGATHER_OPTIONS_WARN_HIGH);
-						getglobal(this:GetName().."High"):SetText(FELWOODGATHER_OPTIONS_WARN_HIGH);
+						getglobal(self:GetName().."Text"):SetText(FELWOODGATHER_OPTIONS_WARN2);
+						getglobal(self:GetName().."Low"):SetText(FELWOODGATHER_OPTIONS_WARN_HIGH);
+						getglobal(self:GetName().."High"):SetText(FELWOODGATHER_OPTIONS_WARN_HIGH);
 						FelwoodGather_SliderWarn2:SetMinMaxValues(0, 1500);
 						FelwoodGather_SliderWarn2:SetValueStep(60);
 					</OnLoad>
@@ -404,9 +401,9 @@
 				</Anchors>
 				<Scripts>
 					<OnLoad>
-						getglobal(this:GetName().."Text"):SetText(FELWOODGATHER_OPTIONS_TRANSPARENCY);
-						getglobal(this:GetName().."High"):SetText("100%");
-						getglobal(this:GetName().."Low"):SetText("0%");
+						getglobal(self:GetName().."Text"):SetText(FELWOODGATHER_OPTIONS_TRANSPARENCY);
+						getglobal(self:GetName().."High"):SetText("100%");
+						getglobal(self:GetName().."Low"):SetText("0%");
 						FelwoodGather_SliderAlpha:SetMinMaxValues(0.0,1.0);
 						FelwoodGather_SliderAlpha:SetValueStep(0.1);
 					</OnLoad>
@@ -428,9 +425,9 @@
 				</Anchors>
 				<Scripts>
 					<OnLoad>
-						getglobal(this:GetName().."Text"):SetText(FELWOODGATHER_OPTIONS_ICONSIZE);
-						getglobal(this:GetName().."High"):SetText("16");
-						getglobal(this:GetName().."Low"):SetText("4");
+						getglobal(self:GetName().."Text"):SetText(FELWOODGATHER_OPTIONS_ICONSIZE);
+						getglobal(self:GetName().."High"):SetText("16");
+						getglobal(self:GetName().."Low"):SetText("4");
 						FelwoodGather_SliderScale:SetMinMaxValues(4,16);
 						FelwoodGather_SliderScale:SetValueStep(2);
 					</OnLoad>
@@ -449,7 +446,7 @@
 				</Anchors>
 				<Scripts>
 					<OnLoad>
-						this:SetText(FELWOODGATHER_OPTIONS_DONE);
+						self:SetText(FELWOODGATHER_OPTIONS_DONE);
 					</OnLoad>
 					<OnClick>
 						FelwoodGather_ToggleConfigWindow();
@@ -466,19 +463,11 @@
 			</OnHide>
 		</Scripts>
 	</Frame>
-	<GameTooltip name="FWGBuffTooltip" inherits="GameTooltipTemplate" parent="WorldFrame" hidden="false" toplevel="true" >
-			<Scripts>
-			<OnLoad>
-				this:SetOwner(WorldFrame, "ANCHOR_NONE");
-			</OnLoad>
-		</Scripts>
-
-	</GameTooltip>
 	<GameTooltip name="FWGMapTooltip" inherits="GameTooltipTemplate" parent="WorldMapFrame" hidden="true" toplevel="true" >
 		<Scripts>
 			<OnLoad>
-				this:SetBackdropBorderColor(TOOLTIP_DEFAULT_COLOR.r, TOOLTIP_DEFAULT_COLOR.g, TOOLTIP_DEFAULT_COLOR.b);
-				this:SetBackdropColor(TOOLTIP_DEFAULT_BACKGROUND_COLOR.r, TOOLTIP_DEFAULT_BACKGROUND_COLOR.g, TOOLTIP_DEFAULT_BACKGROUND_COLOR.b);
+				self:SetBackdropBorderColor(TOOLTIP_DEFAULT_COLOR.r, TOOLTIP_DEFAULT_COLOR.g, TOOLTIP_DEFAULT_COLOR.b);
+				self:SetBackdropColor(TOOLTIP_DEFAULT_BACKGROUND_COLOR.r, TOOLTIP_DEFAULT_BACKGROUND_COLOR.g, TOOLTIP_DEFAULT_BACKGROUND_COLOR.b);
 			</OnLoad>
 		</Scripts>
 	</GameTooltip>
@@ -498,22 +487,22 @@
 			</OnLoad>
 			<OnEnter>
 				FWGMapTooltip:SetParent("Minimap");
-				local x, y = this:GetCenter();
-				local parentX, parentY = this:GetParent():GetCenter();
+				local x, y = self:GetCenter();
+				local parentX, parentY = self:GetParent():GetCenter();
 				if ( x~=nil and parentX ~= nil and x > parentX ) then
-					FWGMapTooltip:SetOwner(this, "ANCHOR_LEFT");
+					FWGMapTooltip:SetOwner(self, "ANCHOR_LEFT");
 				else
-					FWGMapTooltip:SetOwner(this, "ANCHOR_RIGHT");
+					FWGMapTooltip:SetOwner(self, "ANCHOR_RIGHT");
 				end
-				local id = this:GetID();
+				local id = self:GetID();
 				FelwoodGather_SetMinimapTooltipText(id);
 			</OnEnter>
 			<OnLeave>
 				FWGMapTooltip:Hide();
 			</OnLeave>
 			<OnClick>
-				local id = this:GetID();
-				FelwoodGather_OnClick(arg1, id, this:GetName());
+				local id = self:GetID();
+				FelwoodGather_OnClick(arg1, id, self:GetName());
 			</OnClick>
 		</Scripts>
 		<NormalTexture name="$parentTexture" file="Interface\Icons\INV_Misc_Food_45.blp"/> 

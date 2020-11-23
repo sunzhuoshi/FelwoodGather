@@ -1,18 +1,18 @@
 --[[
 FelwoodGather 
 Timer manager for felwood fruit gathering.
-Author: nor3
+Author: nor3, 0ldi, sunzhuoshi
 ]]--
 
 -- constant definition
 
-FELWOODGATHER_VERSION="0.98";
+FELWOODGATHER_VERSION="0.99";
 
 FELWOODGATHER_TIMER = 1500;
 FELWOODGATHER_TIMER_WARN1 = 300;
 FELWOODGATHER_TIMER_WARN2 = 60;
 FELWOODGATHER_CHECK_INTERVAL=3.0;
-FELWOODGATHER_NOTIFY="TellMessage";
+FELWOODGATHER_NOTIFY=SOUNDKIT.TELL_MESSAGE;
 FWG_BROADCAST_HEADER="<FWGBRDCST>";
 
 FELWOODGATHER_ACTIVE = false;
@@ -36,9 +36,9 @@ FelwoodGather_DebugLevel=0;
 FelwoodGather_Details = {
 	name      = FELWOODGATHER_FELWOODGATHER,
 	version   = FELWOODGATHER_VERSION,
-	author    = "nor3",
-	email     = "norf@asuraguild.org",
-	website   = "http://asuraguild.org/nor3/archives/AddOn/FelwoodGather/",
+	author    = "nor3, 0ldi, sunzhuoshi",
+	email     = "sunzhuoshi@gmail.com",
+	website   = "https://github.com/sunzhuoshi/FelwoodGather",
 	category  = MYADDONS_CATEGORY_MAP
 };
 ]]--
@@ -328,52 +328,75 @@ FelwoodGather_MinimapScales[3] = { xscale = 19321.8, yscale = 12992.7 };
 FelwoodGather_MinimapScales[4] = { xscale = 25650.4, yscale = 17253.2 };
 FelwoodGather_MinimapScales[5] = { xscale = 38787.7, yscale = 26032.1 };
 
-
--- ***************** Zone finder **********************
-
-FelwoodGather_Continents = {};
-FelwoodGather_MapZones = {};
-
-function FelwoodGather_LoadContinents(...)
-   for i=1, arg.n do
-      FelwoodGather_Continents[i] = arg[i];
-   end
-end
-function FelwoodGather_LoadMapZones(...)
-   for i=1, arg.n do
-      FelwoodGather_MapZones[i] = arg[i];
-   end
+-- wrapper functions 
+function FelwoodGather_GetPlayerMapPosition(unit)
+	if (not unit) then 
+		unit = 'player';
+	end 
+	local MapID = C_Map.GetBestMapForUnit(unit);
+	local x, y;
+	if MapID then
+		x, y = C_Map.GetPlayerMapPosition(MapID, unit):GetXY()
+	end
+	return x, y;
 end
 
+function FelwoodGather_GetCorpseMapPosition()
+	local MapID = C_Map.GetBestMapForUnit('player');
+	return C_DeathInfo.GetCorpseMapPosition(MapID);
+end 
+
+function FelwoodGather_GetNumRaidMembers()
+	return GetNumGroupMembers(LE_PARTY_CATEGORY_HOME);
+end 
+
+function FelwoodGather_GetNumPartyMembers()
+	return GetNumSubgroupMembers(LE_PARTY_CATEGORY_HOME);
+end
+
+function FelwoodGather_GetNotificationChannel()
+	local channel = nil;
+	if (FelwoodGather_GetNumRaidMembers() > 0) then
+		channel = "RAID";
+	elseif (FelwoodGather_GetNumPartyMembers() > 0) then
+		channel = "PARTY";
+	end	
+	return channel;
+end
+
+function FelwoodGather_PrintTable(t)
+	for k, v in pairs(t) do
+		print('k: ' .. k .. ', v: ' .. v);
+	end
+end
 
 -- ***************** Handlers **********************
 
-function FelwoodGather_OnLoad()
+function FelwoodGather_OnLoad(self)
 	-- Event Registration
-	this:RegisterEvent("WORLD_MAP_UPDATE");
-	this:RegisterEvent("CLOSE_WORLD_MAP");
-	this:RegisterEvent("ADDON_LOADED");
-	this:RegisterEvent("VARIABLES_LOADED");
-	this:RegisterEvent("CHAT_MSG_LOOT");
-	this:RegisterEvent("ZONE_CHANGED_NEW_AREA");
-	this:RegisterEvent("CHAT_MSG_RAID");
-	this:RegisterEvent("CHAT_MSG_RAID_LEADER");
-	this:RegisterEvent("CHAT_MSG_PARTY");
-	this:RegisterEvent("CHAT_MSG_SPELL_PERIODIC_SELF_BUFFS");
-	this:RegisterEvent("UNIT_AURA");
-	this:RegisterEvent("CHAT_MSG_ADDON");
+	-- self:RegisterEvent("WORLD_MAP_UPDATE");
+	-- self:RegisterEvent("CLOSE_WORLD_MAP");
+	self:RegisterEvent("ADDON_LOADED");
+	self:RegisterEvent("VARIABLES_LOADED");
+	self:RegisterEvent("CHAT_MSG_LOOT");
+	self:RegisterEvent("ZONE_CHANGED_NEW_AREA");
+	self:RegisterEvent("CHAT_MSG_RAID");
+	self:RegisterEvent("CHAT_MSG_RAID_LEADER");
+	self:RegisterEvent("CHAT_MSG_PARTY");
+	self:RegisterEvent("UNIT_AURA");
+	self:RegisterEvent("CHAT_MSG_ADDON");
 
 	-- command registration
 	SLASH_FELWOODGATHER1="/felwoodgather";
 	SLASH_FELWOODGATHER2="/fwg";
 
 	SlashCmdList["FELWOODGATHER"] = function (msg)
-		FelwoodGahter_SlashCmd(msg);
+		FelwoodGather_SlashCmd(msg);
 	end
 end
 
 -- Slash Command Handler
-function FelwoodGahter_SlashCmd(msg)
+function FelwoodGather_SlashCmd(msg)	
 	msg = string.lower (msg);
 	if (msg == FWG_SUBCOMMAND_SHARE) then
 		FelwoodGather_ShareTimer();
@@ -400,44 +423,35 @@ end
 
 
 function FelwoodGather_IsActivate() 
-	if(table.getn(FelwoodGather_Continents) == 0) then
-		FelwoodGather_Continents = {};
-		FelwoodGather_MapZones = {};
-		FelwoodGather_LoadContinents(GetMapContinents());
-		for n, cont in FelwoodGather_Continents do
-			if ( cont == FWG_KALIMDOR_MAPNAME ) then
-				FelwoodGather_LoadMapZones(GetMapZones(n));
-			end
+	local mapID = C_Map.GetBestMapForUnit("player");
+	if mapID then
+		info = C_Map.GetMapInfo(mapID);
+		if (info.name == FWG_FELWOOD_MAPNAME) then
+			return true;
 		end
-	end
-	if((FelwoodGather_Continents[GetCurrentMapContinent()] == FWG_KALIMDOR_MAPNAME) and (FelwoodGather_MapZones[GetCurrentMapZone()]==FWG_FELWOOD_MAPNAME)) then
-		return true;
 	end
 	return false;
 end
 
 
 -- OnEvent handler for main window
-function FelwoodGather_OnEvent(event)
+function FelwoodGather_OnEvent(self, event, ...)
+	local args = {...};
 	if (strfind(event, "CHAT_MSG_LOOT")) then
-		FelwoodGather_CheckAndStart(arg1);
-	elseif ( event == "CHAT_MSG_SPELL_PERIODIC_SELF_BUFFS" ) then
-		if ( arg1 == FWG_SONGFLOWER_BUFFMSG ) then
-			FelwoodGather_CheckBuffAndStart();
-		end
+		FelwoodGather_CheckAndStart(args[1]);
 	elseif ( event == "UNIT_AURA") then
-		if (arg1=="player") then
+		if (args[1]=="player") then
 			FelwoodGather_CheckBuffAndStart();
 		end
 	elseif (event == "WORLD_MAP_UPDATE") then
 		FELWOODGATHER_ACTIVE = FelwoodGather_IsActivate();
 		if ( FELWOODGATHER_ACTIVE ) then
-			FelwoodMapOverlayFrame:SetParent("WorldMapDetailFrame");
+			FelwoodMapOverlayFrame:SetParent("WorldMapFrame");
 			FWGMapTooltip:SetParent("WorldMapFrame");
 			FWGMapTooltip:SetFrameLevel(FelwoodMapOverlayFrame1:GetFrameLevel()+1)
-			FelwoodMapOverlayFrame:SetPoint("TOPLEFT", "WorldMapDetailFrame","TOPLEFT", 0, 0);
-			FelwoodGather_WorldMapDetailFrameWidth = WorldMapDetailFrame:GetWidth();
-			FelwoodGather_WorldMapDetailFrameHeight = WorldMapDetailFrame:GetHeight();
+			FelwoodMapOverlayFrame:SetPoint("TOPLEFT", "WorldMapFrame","TOPLEFT", 0, 0);
+			FelwoodGather_WorldMapDetailFrameWidth = WorldMapFrame:GetWidth();
+			FelwoodGather_WorldMapDetailFrameHeight = WorldMapFrame:GetHeight();
 			FelwoodMapOverlayFrame:Show();
 			FelwoodGather_MainDraw();
 		else
@@ -453,9 +467,9 @@ function FelwoodGather_OnEvent(event)
 --				myAddOnsFrame_Register(FelwoodGather_Details, FelwoodGather_Help);
 --			end
 			-- store MapWindow size
-			FelwoodGather_WorldMapDetailFrameWidth = WorldMapDetailFrame:GetWidth();
-			FelwoodGather_WorldMapDetailFrameHeight = WorldMapDetailFrame:GetHeight();
-			FelwoodGather_Print("FelwoodGather by nor3 ver."..FELWOODGATHER_VERSION.." loaded.");
+			FelwoodGather_WorldMapDetailFrameWidth = WorldMapFrame:GetWidth();
+			FelwoodGather_WorldMapDetailFrameHeight = WorldMapFrame:GetHeight();
+			FelwoodGather_Print("FelwoodGather by nor3, 0ldi, sunzhuoshi ver."..FELWOODGATHER_VERSION.." loaded.");
 		end
 	elseif (event == "VARIABLES_LOADED") then
 
@@ -525,7 +539,7 @@ function FelwoodGather_OnEvent(event)
 end
 
 -- map update handler (seems main window not updated while map window open.)
-function FelwoodGather_MapUpdate(elapsed)
+function FelwoodGather_MapUpdate(self, elapsed)
 	if (not FelwoodGather_UpdateMapTimer ) then
 		FelwoodGather_UpdateMapTimer = 0;
 	else
@@ -538,7 +552,7 @@ function FelwoodGather_MapUpdate(elapsed)
 end
 
 -- timer update handler 
-function FelwoodGather_TimeCheck(elapsed)
+function FelwoodGather_TimeCheck(self, elapsed)
 --	if ((not FELWOODGATHER_ACTIVE) or (not FelwoodGather_Config.notify)) then
 --		return;
 --	end
@@ -594,7 +608,7 @@ function FelwoodGather_MainDraw()
 	local eta;
 	local etatext;
 	local seentext;
-	for n, Objs in FelwoodGather_WorldObjs do 
+	for n, Objs in pairs(FelwoodGather_WorldObjs) do 
 		-- set texture
 		local mainNoteTexture = getglobal("FelwoodMain"..n.."Texture");
 		if (mainNoteTexture == nil) then 
@@ -714,24 +728,19 @@ end
 -- trigger timer function
 function FelwoodGather_CheckSongflowerBuff() 
 	for i=0,23 do
-		local buffIndex, untilCancelled = GetPlayerBuff(i, HELPFUL);
-		if (buffIndex >= 0) then
-			FWGBuffTooltip:SetPlayerBuff(buffIndex);
-			buffname = FWGBuffTooltipTextLeft1:GetText();
-			if (buffname~= nil and buffname == FWG_SONGFLOWER_BUFFNAME) then
-				FelwoodGather_DebugPrint("find songflower buf");
-				if(3590 < GetPlayerBuffTimeLeft(buffIndex)) then
+		local name,_,_,_,_,expirationTime = UnitAura('player', i, HELPFUL);
+		if (name) then
+			GameTooltip:SetUnitBuff('player', i);
+			if (name == FWG_SONGFLOWER_BUFFNAME) then
+				FelwoodGather_DebugPrint("songflower buff found");
+				if(3590 < expirationTime - GetTime()) then
 					return true;
 				else 
 					--found songflower but too short remains. ignore it.
 					return false;
 				end
 			else
-				if( buffname ~= nil ) then
-					FelwoodGather_DebugPrint("unmatch:".. buffname);
-				else
-					FelwoodGather_DebugPrint("buffname returned nil");
-				end
+				FelwoodGather_DebugPrint("unmatch: " .. name);
 			end
 			-- continue until songflower found.
 		end
@@ -739,13 +748,12 @@ function FelwoodGather_CheckSongflowerBuff()
 	return false;
 end
 function FelwoodGather_CheckBuffAndStart()
-	if(not FELWOODGATHER_ACTIVE ) then
+	if (not FELWOODGATHER_ACTIVE) then
 		return;
 	end
 
---	if ( arg1 == "You gain Songflower Serenade" ) then
 	if (FelwoodGather_CheckSongflowerBuff()) then
-		x, y = GetPlayerMapPosition("player");
+		x, y = FelwoodGather_GetPlayerMapPosition();
 		x= x*100;
 		y= y*100;
 		curTime = GetTime();
@@ -765,12 +773,7 @@ function FelwoodGather_CheckBuffAndStart()
 				end
 				-- send rosters
 				if( FelwoodGather_Config.useMsg ) then
-					local channel = nil;
-					if (GetNumRaidMembers() > 0) then
-						channel = "RAID";
-					elseif (GetNumPartyMembers() > 0) then
-						channel = "PARTY";
-					end
+					local channel = FelwoodGather_GetNotificationChannel();
 					if( channel ~= nil ) then
 						eta = FELWOODGATHER_TIMER;
 						d, h, m, s = ChatFrame_TimeBreakDown(eta);
@@ -802,12 +805,11 @@ function FelwoodGather_CheckAndStart(arg1)
 	if(( string.find(arg1, FWG_NIGHT_DRAGON_BREATH)) 
 		or (string.find(arg1, FWG_WINDBLOSSOM_BERRIES))
 		or (string.find(arg1, FWG_WHIPPER_ROOT_TUBER))) then
-
-		x, y = GetPlayerMapPosition("player");
+		x, y = FelwoodGather_GetPlayerMapPosition();
 		x= x*100;
 		y= y*100;
 		curTime = GetTime();
-		for n, Objs in FelwoodGather_WorldObjs do 
+		for n, Objs in pairs(FelwoodGather_WorldObjs) do 
 			if( (Objs.x - x)*(Objs.x - x)+(Objs.y - y)*(Objs.y - y) < 2) then
 				Objs.timer = curTime;
 				Objs.status = 0;
@@ -819,12 +821,7 @@ function FelwoodGather_CheckAndStart(arg1)
 					Objs.firstSeen = curTime;
 				end
 				if( FelwoodGather_Config.useMsg ) then
-					local channel = nil;
-					if (GetNumRaidMembers() > 0) then
-						channel = "RAID";
-					elseif (GetNumPartyMembers() > 0) then
-						channel = "PARTY";
-					end
+					local channel = FelwoodGather_GetNotificationChannel();
 					if( channel ~= nil ) then
 						eta = FELWOODGATHER_TIMER;
 						d, h, m, s = ChatFrame_TimeBreakDown(eta);
@@ -847,7 +844,7 @@ end
 
 -- hide window
 function FelwoodGather_HideAll()
-	for n, Objs in FelwoodGather_WorldObjs do 
+	for n, Objs in pairs(FelwoodGather_WorldObjs) do 
 		local mainNote = getglobal("FelwoodMain"..n);
 		mainNote:Hide();
 	end
@@ -862,7 +859,7 @@ function FelwoodGather_OnUpdate()
 		FelwoodGather_Latest.index = 0;
 		FelwoodGather_Latest.timer = 0;
 	end
-	for n, Objs in FelwoodGather_WorldObjs do 
+	for n, Objs in pairs(FelwoodGather_WorldObjs) do 
 		if (Objs.timer == 0) then
 		else
 			eta = (Objs.timer + FELWOODGATHER_TIMER) - curTime;
@@ -913,15 +910,10 @@ function FelwoodGather_NotifyEstimate(Objs, eta, useChannel)
 	local d, h, m, s = ChatFrame_TimeBreakDown(math.abs(eta));
 	local message = format(FWG_NOTIFY_MESSAGE, Objs.item, m, s, Objs.location, Objs.x, Objs.y);
 	if (useChannel) then
-		local channel;
-		if (GetNumRaidMembers() > 0) then
-			channel = "RAID";
-		elseif (GetNumPartyMembers() > 0) then
-			channel = "PARTY";
-		else
-			return;
-		end
+		local channel = FelwoodGather_GetNotificationChannel();
+		if (channel) then
 		SendChatMessage(message, channel);
+		end 
 	else 
 		FelwoodGather_Print(message);
 	end
@@ -932,14 +924,10 @@ end
 -- test needed. I dont know whether the GetTime() values are same for everyone.
 -- if not, this should send delta value.
 function FelwoodGather_ShareTimer() 
-	local channel;
-	if (GetNumRaidMembers() > 0) then
-		channel = "RAID";
-	elseif (GetNumPartyMembers() > 0) then
-		channel = "PARTY";
-	else
+	local channel = FelwoodGather_GetNotificationChannel();
+	if (not channel) then 
 		return;
-	end
+	end 
 	local curTime = GetTime();
 	local message;
 	local count = 0;
@@ -965,7 +953,7 @@ function FelwoodGather_SetTimer(n, time)
 		FelwoodGather_Latest.index = 0;
 		FelwoodGather_Latest.timer = 0;
 		curTime = GetTime();
-		for n, Objs in FelwoodGather_WorldObjs do 
+		for n, Objs in pairs(FelwoodGather_WorldObjs) do 
 			if ((Objs.timer + FELWOODGATHER_TIMER > curTime ) and
 			((FelwoodGather_Latest.timer == 0) or (FelwoodGather_Latest.timer > Objs.timer))) then
 				FelwoodGather_Latest.index = n;
@@ -982,7 +970,7 @@ function FelwoodGather_Print(message)
 end
 
 function FelwoodGather_DebugModePrint(message, level)
-	if (level < FelwoodGather_DebugLevel) then
+	if (FelwoodGather_DebugMode and level < FelwoodGather_DebugLevel) then
 		FelwoodGather_Print(message);
 	end
 end	
@@ -1157,12 +1145,12 @@ function FelwoodGather_MinimapDraw()
 	if( (curZone ~= nil) and curZone ~= FWG_FELWOOD_MAPNAME) then
 		return;
 	end
-	local x, y = GetPlayerMapPosition("player");
+	local x, y = FelwoodGather_GetPlayerMapPosition();
 	x, y = FelwoodGather_CalcMinimapCoords(x, y);
 	FelwoodGather_DebugModePrint("playerMinimapPos:" .. x ..", ".. y, 3);
 	local zoomLevel = Minimap:GetZoom();
 	local inMap = false;
-	for n, Objs in FelwoodGather_WorldObjs do 
+	for n, Objs in pairs(FelwoodGather_WorldObjs) do 
 		local tx, ty = FelwoodGather_CalcMinimapCoords(Objs.x/100, Objs.y/100);
 		FelwoodGather_DebugModePrint("objMinimapPos:".. n .. ":" .. tx ..", ".. ty, 3);
 		
