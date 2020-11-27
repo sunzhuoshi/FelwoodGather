@@ -1121,12 +1121,12 @@ function FelwoodGather_PickupCountDown(byUI)
 	end
 	-- counter in progress.
 	if(FelwoodGather_PickupCount.count == FelwoodGather_Config.countdown) then
-		SendChatMessage(FELWOODGATHER_OPENNOW, "SAY");
-	elseif (FelwoodGather_PickupCount.count <= 0) then 
-		SendChatMessage(FELWOODGATHER_PICKUP, "SAY");
+		SendChatMessage(': ' .. FELWOODGATHER_OPENNOW, "EMOTE");
+	elseif (FelwoodGather_PickupCount.count <= 0) then
+		SendChatMessage(': ' .. FELWOODGATHER_PICKUP, "EMOTE");
 		FelwoodGather_PickupCount.inProgress = false;
 	else
-		SendChatMessage(""..FelwoodGather_PickupCount.count, "SAY");
+		SendChatMessage(': ' .. FelwoodGather_PickupCount.count, "EMOTE");
 	end
 	FelwoodGather_PickupCount.count = FelwoodGather_PickupCount.count - 1;
 end
