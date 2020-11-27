@@ -56,6 +56,7 @@ FELWOODGATHER_SHARE_TIMER_FORMAT="%s %d %02d:%02d %s at %s(%d, %d)";
 FELWOODGATHER_PARSE_FORMAT="([^%s]+) ([^%s]+) ([^%s]+):([^%s]+)";
 --notification
 FWG_NOTIFY_MESSAGE="%s will spawn in %02d:%02d - at %s(%d, %d)";
+FWG_NOTIFY_SPAWNED_MESSAGE="%s has been spawned %02d:%02d ago - at %s(%d, %d)";
 FWG_BROADCAST_COUNTS=" timer(s) broadcasted.";
 FWG_NOT_HAVE_TIMER="You don't have the timer.";
 --tooltip
@@ -340,10 +341,11 @@ FWG_LOOTMSG_MATCH_PATTERN="You receive item:(.+)%.";
 
 --notification
 FWG_NOTIFY_MESSAGE="%s 将于 %02d:%02d 后在 %s(%d, %d) 刷新";
+FWG_NOTIFY_SPAWNED_MESSAGE="%s 已于 %02d:%02d 前在 %s(%d, %d) 刷新";
 FWG_BROADCAST_COUNTS="条计时信息已广播。";
 FWG_NOT_HAVE_TIMER="你没有任何计时信息。";
 --tooltip
-FWG_TOOLTIP_TEXT="%s - %s\n估计刷新: %s\n首次遇见: %s";
+FWG_TOOLTIP_TEXT="%s - %s\n预计刷新: %s\n首次遇见: %s";
 FWG_TOOLTIP_TEXT_EXT="\n获取次数: %d";
 FWG_NO_TIMER="";
 FWG_FIRSTSEEN_FORMAT="%02d:%02d:%02d ago";

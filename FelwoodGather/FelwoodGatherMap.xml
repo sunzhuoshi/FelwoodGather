@@ -32,11 +32,9 @@
 					getglobal(self:GetName().."Icon"):SetTexture("Interface\\WorldMap\\WorldMapPlayerIcon");
 				else
 					self.unit = "party"..self:GetID();
---					getglobal(self:GetName().."Icon"):SetTexture("Interface\\WorldMap\\WorldMapPartyIcon");
 					getglobal(self:GetName().."Icon"):SetTexture("Interface\\AddOns\\FelwoodGather\\PartyIcon.tga");
 				end
-				self:SetFrameLevel(self:GetFrameLevel() + 1);
-				self:RegisterForClicks("LeftButtonUp");
+				self:SetFrameLevel(self:GetFrameLevel());
 			</OnLoad>
 			<OnEnter>
 				FelwoodGatherMap_SetupPCToolTip(self);
@@ -53,7 +51,6 @@
 				self:SetFrameLevel(self:GetFrameLevel() + 1);
 				self.unit = "raid"..self:GetID();
 				self:RegisterForClicks("LeftButtonUp");
---				getglobal(self:GetName().."Icon"):SetTexture("Interface\\WorldMap\\WorldMapPartyIcon");
 				getglobal(self:GetName().."Icon"):SetTexture("Interface\\AddOns\\FelwoodGather\\PartyIcon.tga");
 			</OnLoad>
 		</Scripts>

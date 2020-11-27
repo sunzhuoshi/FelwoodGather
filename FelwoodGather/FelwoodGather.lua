@@ -6,7 +6,7 @@ Author: nor3, 0ldi, sunzhuoshi
 
 -- constant definition
 
-FELWOODGATHER_VERSION="0.9.9";
+FELWOODGATHER_VERSION="0.9.10";
 
 FELWOODGATHER_TIMER = 1500;
 FELWOODGATHER_TIMER_WARN1 = 300;
@@ -910,7 +910,12 @@ function FelwoodGather_NotifyEstimate(Objs, eta, useChannel)
 		return;
 	end
 	local d, h, m, s = ChatFrame_TimeBreakDown(math.abs(eta));
-	local message = format(FWG_NOTIFY_MESSAGE, Objs.item, m, s, Objs.location, Objs.x, Objs.y);
+	local message;
+	if (eta >= 0) then 
+		message = format(FWG_NOTIFY_MESSAGE, Objs.item, m, s, Objs.location, Objs.x, Objs.y);
+	else 
+		message = format(FWG_NOTIFY_SPAWNED_MESSAGE, Objs.item, m, s, Objs.location, Objs.x, Objs.y);	
+	end 
 	if (useChannel) then
 		local channel = FelwoodGather_GetNotificationChannel();
 		if (channel) then
